@@ -1,8 +1,12 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { type NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+/**
+ * 轻量级 middleware —— 仅透传请求
+ * Supabase 认证由客户端在 AuthProvider 中处理
+ * 这样避免 Edge Runtime 兼容性问题
+ */
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
 }
 
 export const config = {
