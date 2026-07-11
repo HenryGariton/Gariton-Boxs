@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { FaUserEdit, FaFileAlt, FaBolt } from "react-icons/fa";
+import { FaUserEdit, FaFileAlt, FaBolt, FaTrash } from "react-icons/fa";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { BusinessCard } from "@/components/card/BusinessCard";
+import { CommentSection } from "@/components/social/CommentSection";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useCard } from "@/lib/hooks/useCard";
 import { usePosts } from "@/lib/hooks/usePosts";
@@ -24,7 +25,7 @@ export default function UserCardPage() {
 
   const { appUser } = useAuth();
   const { getCardByNickname } = useCard();
-  const { getPosts } = usePosts();
+  const { getPosts, deletePost } = usePosts();
 
   const [card, setCard] = useState<CardWithUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,28 @@ export default function UserCardPage() {
   useEffect(() => {
     if (card) fetchPosts();
   }, [card, fetchPosts]);
+
+  // 删除动态/文章
+  const handleDeletePost = useCallback(
+    async (postId: string) => {
+      console.log("[handleDeletePost] 触发, postId:", postId);
+      if (!confirm("确定删除吗？删除后无法恢复。")) {
+        console.log("[handleDeletePost] 用户取消");
+        return;
+      }
+      try {
+        console.log("[handleDeletePost] 开始调用 deletePost...");
+        await deletePost(postId);
+        console.log("[handleDeletePost] 删除成功");
+        setShortPosts((prev) => prev.filter((p) => p.id !== postId));
+        setArticles((prev) => prev.filter((p) => p.id !== postId));
+      } catch (err: any) {
+        console.error("[handleDeletePost] 删除失败:", err?.message, err?.details, err?.hint, err);
+        alert("删除失败: " + (err?.message || "未知错误，请打开控制台查看详情"));
+      }
+    },
+    [deletePost]
+  );
 
   // 加载中
   if (loading) {
@@ -139,8 +162,19 @@ export default function UserCardPage() {
                 ))}
               </div>
             )}
-            <div className="mt-2 flex items-center gap-3 text-xs text-white/40">
-              <span>{formatRelativeTime(post.created_at)}</span>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs text-white/40">
+                {formatRelativeTime(post.created_at)}
+              </span>
+              {isOwner && (
+                <button
+                  onClick={() => handleDeletePost(post.id)}
+                  className="text-white/30 hover:text-red-400 transition-colors p-1"
+                  title="删除"
+                >
+                  <FaTrash className="text-xs" />
+                </button>
+              )}
             </div>
           </GlassCard>
         ))}
@@ -181,10 +215,25 @@ export default function UserCardPage() {
             <p className="mt-1.5 text-sm text-white/60">
               {truncate(article.excerpt || article.content, 120)}
             </p>
-            <div className="mt-2 flex items-center gap-3 text-xs text-white/40">
-              <span>{formatRelativeTime(article.created_at)}</span>
-              <span>{article.likes_count} 赞</span>
-              <span>{article.comments_count} 评论</span>
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-white/40">
+                <span>{formatRelativeTime(article.created_at)}</span>
+                <span>{article.likes_count} 赞</span>
+                <span>{article.comments_count} 评论</span>
+              </div>
+              {isOwner && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleDeletePost(article.id);
+                  }}
+                  className="text-white/30 hover:text-red-400 transition-colors p-1"
+                  title="删除"
+                >
+                  <FaTrash className="text-xs" />
+                </button>
+              )}
             </div>
           </GlassCard>
         ))}
@@ -201,6 +250,13 @@ export default function UserCardPage() {
       >
         {/* 名片展示 */}
         <BusinessCard card={card} showActions={!isOwner} />
+
+        {/* 评论区（访客可见） */}
+        {!isOwner && (
+          <div className="mt-6">
+            <CommentSection targetType="card" targetId={card.id} />
+          </div>
+        )}
 
         {/* 编辑按钮（本人可见） */}
         {isOwner && (

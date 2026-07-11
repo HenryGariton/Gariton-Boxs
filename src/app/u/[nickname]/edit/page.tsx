@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { FaTrash } from "react-icons/fa";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { CardForm } from "@/components/card/CardForm";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useCard } from "@/lib/hooks/useCard";
@@ -17,7 +19,7 @@ export default function EditCardPage() {
   const nickname = params.nickname as string;
 
   const { user, appUser, loading: authLoading } = useAuth();
-  const { getMyCard } = useCard();
+  const { getMyCard, deleteCard } = useCard();
 
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,25 @@ export default function EditCardPage() {
     router.push(`/u/${nickname}`);
   };
 
+  // 删除名片
+  const handleDelete = useCallback(async () => {
+    console.log("[handleDelete] 触发，cardId:", card?.id);
+    if (!card) return;
+    if (!confirm("确定删除你的名片吗？此操作不可恢复。")) {
+      console.log("[handleDelete] 用户取消");
+      return;
+    }
+    try {
+      console.log("[handleDelete] 开始调用 deleteCard...");
+      await deleteCard(card.id);
+      console.log("[handleDelete] deleteCard 成功，跳转到 /discover");
+      router.push("/discover");
+    } catch (err: any) {
+      console.error("[handleDelete] 删除失败:", err?.message, err?.details, err?.hint, err);
+      alert("删除失败: " + (err?.message || "未知错误，请打开控制台查看详情"));
+    }
+  }, [card, deleteCard, router]);
+
   // 加载中
   if (authLoading || loading || redirecting) {
     return (
@@ -101,6 +122,20 @@ export default function EditCardPage() {
 
         {/* 表单 */}
         <CardForm initialData={card} onSave={handleSave} />
+
+        {/* 删除名片（仅已有名片时显示） */}
+        {card && (
+          <div className="mt-8 pt-6 border-t border-white/10">
+            <Button
+              variant="outline"
+              onClick={handleDelete}
+              className="text-red-400 border-red-400/30 hover:bg-red-400/10 hover:border-red-400/50"
+            >
+              <FaTrash />
+              删除名片
+            </Button>
+          </div>
+        )}
       </motion.div>
     </PageContainer>
   );

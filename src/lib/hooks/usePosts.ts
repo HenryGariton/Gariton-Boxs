@@ -95,8 +95,13 @@ export function usePosts() {
   // 删除
   const deletePost = useCallback(
     async (id: string) => {
+      console.log("[deletePost] 删除动态/文章:", id);
       const { error } = await supabase.from("posts").delete().eq("id", id);
-      if (error) throw error;
+      if (error) {
+        console.error("[deletePost] Supabase 错误:", error.message, error.details, error.hint, error.code);
+        throw error;
+      }
+      console.log("[deletePost] 删除成功");
     },
     [supabase]
   );

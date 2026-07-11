@@ -49,6 +49,10 @@ export default function FeedPage() {
     fetchPosts(nextPage);
   }, [page, fetchPosts]);
 
+  const handleDelete = useCallback((postId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  }, []);
+
   return (
     <PageContainer maxWidth="md">
       <motion.div
@@ -78,6 +82,7 @@ export default function FeedPage() {
           loading={loading}
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
+          onDelete={handleDelete}
         />
       </motion.div>
     </PageContainer>

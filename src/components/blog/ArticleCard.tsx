@@ -1,11 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { FaHeart, FaComment } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaComment } from "react-icons/fa";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/ui/Avatar";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { useLikes } from "@/lib/hooks/useLikes";
 import { formatRelativeTime, formatCount } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
 import type { PostWithUser } from "@/lib/types/database";
 
 interface ArticleCardProps {
@@ -17,9 +21,40 @@ interface ArticleCardProps {
  * - 封面图（如有）
  * - 标题、摘要
  * - 作者信息 + 时间
- * - 点赞数 + 评论数
+ * - 点赞（可点击）+ 评论数
  */
 export function ArticleCard({ article }: ArticleCardProps) {
+  const router = useRouter();
+  const { appUser } = useAuth();
+  const { liked, likeCount, checkLiked, getLikeCount, toggleLike } = useLikes(
+    "post",
+    article.id,
+    appUser?.id
+  );
+
+  useEffect(() => {
+    if (appUser) {
+      checkLiked();
+      getLikeCount();
+    }
+  }, [appUser, checkLiked, getLikeCount]);
+
+  const handleCardClick = () => {
+    router.push(`/blog/${article.id}`);
+  };
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!appUser) {
+      alert("请先登录");
+      return;
+    }
+    toggleLike();
+  };
+
+  // 优先使用 useLikes 实时计数，回退到文章静态计数
+  const displayLikeCount = likeCount > 0 || liked ? likeCount : (article.likes_count ?? 0);
   return (
     <motion.div
       layout
@@ -27,7 +62,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Link href={`/blog/${article.id}`}>
+      <div onClick={handleCardClick} role="link" tabIndex={0}>
         <GlassCard hover className="p-0 overflow-hidden cursor-pointer">
           {/* 封面图 */}
           {article.cover_image && (
@@ -81,20 +116,34 @@ export function ArticleCard({ article }: ArticleCardProps) {
               </div>
             </div>
 
-            {/* 底部：点赞 + 评论 */}
+            {/* 底部：可点赞 + 评论数 */}
             <div className="mt-4 flex items-center gap-5 pt-3 border-t border-white/10">
-              <div className="flex items-center gap-1.5 text-sm text-white/50">
-                <FaHeart className="text-xs" />
-                <span>{formatCount(article.likes_count)}</span>
-              </div>
+              <button
+                onClick={handleLike}
+                className={cn(
+                  "flex items-center gap-1.5 text-sm transition-all duration-200",
+                  "active:scale-90 hover:scale-105",
+                  liked ? "text-red-400" : "text-white/50 hover:text-white/80"
+                )}
+              >
+                <motion.span
+                  key={liked ? "liked" : "unliked"}
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                >
+                  {liked ? <FaHeart className="text-xs" /> : <FaRegHeart className="text-xs" />}
+                </motion.span>
+                <span>{formatCount(displayLikeCount)}</span>
+              </button>
               <div className="flex items-center gap-1.5 text-sm text-white/50">
                 <FaComment className="text-xs" />
-                <span>{formatCount(article.comments_count)}</span>
+                <span>{formatCount(article.comments_count ?? 0)}</span>
               </div>
             </div>
           </div>
         </GlassCard>
-      </Link>
+      </div>
     </motion.div>
   );
 }

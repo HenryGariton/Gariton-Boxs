@@ -32,7 +32,7 @@ export function PostCard({
   className,
 }: PostCardProps) {
   const { appUser } = useAuth();
-  const { liked, likeCount, checkLiked, getLikeCount, toggleLike } = useLikes(
+  const { liked, likeCount, checkLiked, getLikeCount, toggleLike, error: likeError } = useLikes(
     "post",
     post.id,
     appUser?.id
@@ -149,6 +149,11 @@ export function PostCard({
             </motion.span>
             <span>{formatCount(likeCount)}</span>
           </button>
+
+          {/* 点赞错误提示 */}
+          {likeError && (
+            <span className="text-xs text-red-400">{likeError}</span>
+          )}
 
           {/* 评论按钮 */}
           {showCommentButton && (

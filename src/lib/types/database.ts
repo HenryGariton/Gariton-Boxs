@@ -35,6 +35,8 @@ export type Database = {
           phone: string;
           theme_color: string;
           views_count: number;
+          likes_count: number;
+          comments_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -51,6 +53,8 @@ export type Database = {
           phone?: string;
           theme_color?: string;
           views_count?: number;
+          likes_count?: number;
+          comments_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -64,6 +68,8 @@ export type Database = {
           contact_email?: string;
           phone?: string;
           theme_color?: string;
+          likes_count?: number;
+          comments_count?: number;
           updated_at?: string;
         };
       };

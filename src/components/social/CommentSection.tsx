@@ -31,7 +31,7 @@ export function CommentSection({
   className,
 }: CommentSectionProps) {
   const { appUser } = useAuth();
-  const { comments, loading, fetchComments, addComment, fetchReplies } =
+  const { comments, loading, replyCounts, fetchComments, addComment, fetchReplies } =
     useComments(targetType, targetId);
 
   const [content, setContent] = useState("");
@@ -196,6 +196,7 @@ export function CommentSection({
           <AnimatePresence mode="popLayout">
             {comments.map((comment) => {
               const replies = repliesMap[comment.id] || [];
+              const replyCount = replyCounts[comment.id] || 0;
               const isExpanded = expandedReplies.has(comment.id);
               const isOwn = appUser?.id === comment.user_id;
 
@@ -283,15 +284,15 @@ export function CommentSection({
                           </div>
                         )}
 
-                        {/* 展开/折叠回复 */}
-                        {replies.length > 0 && (
+                        {/* 展开/折叠回复 — 始终显示回复数 */}
+                        {replyCount > 0 && (
                           <button
                             onClick={() => toggleReplies(comment)}
                             className="mt-2 text-xs text-white/50 hover:text-white/80 transition-colors"
                           >
                             {isExpanded
                               ? "收起回复"
-                              : `展开 ${replies.length} 条回复`}
+                              : `展开 ${replyCount} 条回复`}
                           </button>
                         )}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { type IconType } from "react-icons";
 import {
   FaGithub,
@@ -8,6 +9,7 @@ import {
   FaGlobe,
   FaWeixin,
   FaHeart,
+  FaRegHeart,
   FaComment,
 } from "react-icons/fa";
 import { SiZhihu, SiJuejin } from "react-icons/si";
@@ -15,6 +17,9 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { SOCIAL_PLATFORMS } from "@/lib/utils/constants";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { useLikes } from "@/lib/hooks/useLikes";
+import { formatCount } from "@/lib/utils/format";
 import type { CardWithUser } from "@/lib/types/database";
 import { cn } from "@/lib/utils/cn";
 
@@ -53,6 +58,29 @@ export function BusinessCard({
   onClick,
   className,
 }: BusinessCardProps) {
+  const { appUser } = useAuth();
+  const { liked, likeCount, checkLiked, getLikeCount, toggleLike, error: likeError } = useLikes(
+    "card",
+    card.id,
+    showActions ? appUser?.id : undefined
+  );
+
+  // showActions 模式下初始化点赞状态
+  useEffect(() => {
+    if (showActions && appUser) {
+      checkLiked();
+      getLikeCount();
+    }
+  }, [showActions, appUser, checkLiked, getLikeCount]);
+
+  const handleLike = () => {
+    if (!appUser) {
+      alert("请先登录");
+      return;
+    }
+    toggleLike();
+  };
+
   const {
     users,
     display_name,
@@ -130,12 +158,27 @@ export function BusinessCard({
           </div>
 
           {showActions && (
-            <div className="flex gap-2 mt-2">
-              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm glass rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all">
-                <FaHeart className="text-sm" />
-                <span>点赞</span>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={handleLike}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
+                  "active:scale-90 hover:scale-105",
+                  liked
+                    ? "text-red-400 glass"
+                    : "text-white/80 hover:text-white hover:bg-white/10 glass"
+                )}
+              >
+                {liked ? <FaHeart className="text-sm" /> : <FaHeart className="text-sm" />}
+                <span>{formatCount(likeCount)}</span>
               </button>
-              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm glass rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all">
+              {likeError && (
+                <span className="text-xs text-red-400">{likeError}</span>
+              )}
+              <button
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm glass rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all"
+                title="查看评论"
+              >
                 <FaComment className="text-sm" />
                 <span>评论</span>
               </button>

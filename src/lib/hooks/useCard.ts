@@ -103,5 +103,19 @@ export function useCard() {
     [supabase]
   );
 
-  return { getMyCard, getCardByNickname, getAllCards, createCard, updateCard };
+  // 删除名片
+  const deleteCard = useCallback(
+    async (cardId: string) => {
+      console.log("[deleteCard] 删除名片:", cardId);
+      const { error } = await supabase.from("cards").delete().eq("id", cardId);
+      if (error) {
+        console.error("[deleteCard] Supabase 错误:", error.message, error.details, error.hint, error.code);
+        throw error;
+      }
+      console.log("[deleteCard] 删除成功");
+    },
+    [supabase]
+  );
+
+  return { getMyCard, getCardByNickname, getAllCards, createCard, updateCard, deleteCard };
 }

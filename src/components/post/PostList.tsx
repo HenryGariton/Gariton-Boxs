@@ -14,6 +14,7 @@ interface PostListProps {
   loading?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
+  onDelete?: (postId: string) => void;
   className?: string;
 }
 
@@ -53,6 +54,7 @@ export function PostList({
   loading = false,
   hasMore = false,
   onLoadMore,
+  onDelete,
   className,
 }: PostListProps) {
   // 加载中骨架屏
@@ -101,7 +103,7 @@ export function PostList({
               show: { opacity: 1, y: 0 },
             }}
           >
-            <PostCard post={post} />
+            <PostCard post={post} onDelete={() => onDelete?.(post.id)} />
           </motion.div>
         ))}
       </motion.div>
