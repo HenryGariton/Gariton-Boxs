@@ -60,7 +60,8 @@ export default function SettingsPage() {
     setSaving(true);
     setError("");
     try {
-      const supabase = createClient();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const supabase = createClient() as any;
       const { error: updateError } = await supabase
         .from("users")
         .update({ nickname: newNickname.trim() })

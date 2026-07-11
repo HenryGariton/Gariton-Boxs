@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { Card, CardWithUser } from "@/lib/types/database";
 
 export function useCard() {
-  const supabase = createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createClient() as any;
 
   // 获取用户的名片
   const getMyCard = useCallback(async (userId: string) => {

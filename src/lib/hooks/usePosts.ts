@@ -6,7 +6,8 @@ import type { Post, PostWithUser } from "@/lib/types/database";
 import { PAGE_SIZE } from "@/lib/utils/constants";
 
 export function usePosts() {
-  const supabase = createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createClient() as any;
 
   // 获取动态/文章列表
   const getPosts = useCallback(

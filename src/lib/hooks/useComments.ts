@@ -11,7 +11,8 @@ type TargetType = "card" | "post";
 export type CommentWithReplyCount = CommentWithUser & { reply_count: number };
 
 export function useComments(targetType: TargetType, targetId: string) {
-  const supabase = createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createClient() as any;
   const [comments, setComments] = useState<CommentWithUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);

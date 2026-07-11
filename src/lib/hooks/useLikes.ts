@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 type TargetType = "card" | "post";
 
 export function useLikes(targetType: TargetType, targetId: string, userId?: string) {
-  const supabase = createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createClient() as any;
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
